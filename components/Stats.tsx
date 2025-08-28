@@ -31,16 +31,33 @@ interface StatsProps {
 export const Stats: React.FC<StatsProps> = ({ data }) => {
   const stats = useMemo(() => {
     const totalEquipment = data.length;
-    const ownedEquipment = data.filter(item => String(item['Own']).trim() === '✓').length;
-    const rentedEquipment = data.filter(item => String(item['Rental']).trim() === '✓').length;
-    return { totalEquipment, ownedEquipment, rentedEquipment };
+    
+    // Count equipment with insurance
+    const insuredEquipment = data.filter(item => {
+      const insurance = item['Insurance'];
+      return insurance && insurance.toString().trim() !== '' && insurance.toString().trim() !== '-';
+    }).length;
+    
+    // Count equipment with permits
+    const permittedEquipment = data.filter(item => {
+      const permit = item['Permit'];
+      return permit && permit.toString().trim() !== '' && permit.toString().trim() !== '-';
+    }).length;
+    
+    // Count equipment with fitness certificates
+    const fitEquipment = data.filter(item => {
+      const fitness = item['Fitness Certificate'];
+      return fitness && fitness.toString().trim() !== '' && fitness.toString().trim() !== '-';
+    }).length;
+    
+    return { totalEquipment, insuredEquipment, permittedEquipment, fitEquipment };
   }, [data]);
 
   return (
     <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <StatsCard icon="fa-solid fa-box" iconBgColor="bg-blue-600" value={stats.totalEquipment} label="Total Equipment" />
-      <StatsCard icon="fa-solid fa-user-check" iconBgColor="bg-emerald-500" value={stats.ownedEquipment} label="Owned" />
-      <StatsCard icon="fa-solid fa-truck-ramp-box" iconBgColor="bg-pink-500" value={stats.rentedEquipment} label="Rented" />
+      <StatsCard icon="fa-solid fa-shield-check" iconBgColor="bg-emerald-500" value={stats.insuredEquipment} label="Insured" />
+      <StatsCard icon="fa-solid fa-file-contract" iconBgColor="bg-amber-500" value={stats.permittedEquipment} label="Permitted" />
     </section>
   );
 };

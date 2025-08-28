@@ -13,6 +13,8 @@ function doGet(e) {
         return getEquipmentData(sheetName);
       case 'getSheets':
         return getAvailableSheets();
+      case 'debug':
+        return debugSheet(sheetName);
       default:
         return ContentService
           .createTextOutput(JSON.stringify({error: 'Invalid action'}))
@@ -106,6 +108,9 @@ function getEquipmentDataFromSheet(sheet) {
   const headers = data[0];
   const equipment = [];
   
+  // Debug: Log the headers to see what columns we actually have
+  console.log('Sheet headers:', headers);
+  
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
     const item = {};
@@ -114,10 +119,30 @@ function getEquipmentDataFromSheet(sheet) {
       item[header] = row[index] || '';
     });
     
-    // Check if the row has an SI No (first column) and it's not empty
-    if (item['SI No'] && item['SI No'] !== '') {
+    // More flexible row inclusion logic
+    // Include row if it has any meaningful data (not just SI No)
+    const hasData = Object.values(item).some(value => 
+      value && value.toString().trim() !== '' && value.toString().trim() !== '-'
+    );
+    
+    // Also check if this looks like a data row (not a header or empty row)
+    const isDataRow = row.some(cell => 
+      cell && cell.toString().trim() !== '' && cell.toString().trim() !== '-'
+    );
+    
+    if (hasData && isDataRow) {
+      // If SI No is empty but we have other data, generate a temporary one
+      if (!item['SI No'] || item['SI No'] === '') {
+        item['SI No'] = i; // Use row index as temporary SI No
+      }
       equipment.push(item);
     }
+  }
+  
+  // Debug: Log what we found
+  console.log('Found equipment count:', equipment.length);
+  if (equipment.length > 0) {
+    console.log('Sample equipment item:', equipment[0]);
   }
   
   return ContentService
@@ -255,6 +280,41 @@ function deleteEquipment(data, sheetName) {
   } catch(error) {
     return ContentService
       .createTextOutput(JSON.stringify({error: 'Failed to delete equipment: ' + error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function debugSheet(sheetName) {
+  try {
+    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    const sheet = spreadsheet.getSheetByName(sheetName);
+    
+    if (!sheet) {
+      return ContentService
+        .createTextOutput(JSON.stringify({error: 'Sheet not found: ' + sheetName}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const sampleRows = data.slice(1, Math.min(6, data.length)); // First 5 data rows
+    
+    const debugInfo = {
+      sheetName: sheetName,
+      totalRows: data.length,
+      totalColumns: headers.length,
+      headers: headers,
+      sampleRows: sampleRows,
+      firstRowData: data[1] || [],
+      lastRowData: data[data.length - 1] || []
+    };
+    
+    return ContentService
+      .createTextOutput(JSON.stringify(debugInfo, null, 2))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({error: 'Debug failed: ' + error.toString()}))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }

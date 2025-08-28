@@ -17,31 +17,56 @@ const renderCell = (item: Equipment, key: keyof Equipment) => {
     const value = item[key] ?? '';
     const text = String(value).trim();
 
-    if (key === 'Own' || key === 'Rental') {
-        if (text === '✓') {
-            return <span className="text-emerald-600 text-center block"><i className="fa-solid fa-check"></i></span>;
-        }
-        if (text === '-') {
-            return <span className="text-slate-400 text-center block"><i className="fa-solid fa-minus"></i></span>;
-        }
-        return <span title={text}>{text}</span>;
+    // Handle empty values
+    if (!text || text === '') {
+        return <span className="text-slate-400">-</span>;
     }
 
-    if (key === 'Running') {
-        if (text.toLowerCase() === 'yes') {
-             return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                Yes
-            </span>;
-        }
-        if (text && text !== '-') {
-             return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                {text}
-            </span>;
+    // Handle date fields with better formatting
+    if (key === 'Insurance' || key === 'Permit' || key === 'Tax' || key === 'Fitness Certificate') {
+        if (text && text !== '') {
+            return <span className="text-blue-700 font-medium" title={text}>{text}</span>;
         }
         return <span className="text-slate-400">-</span>;
     }
+
+    // Handle SI No with better styling
+    if (key === 'SI No') {
+        return <span className="font-semibold text-gray-700">{text}</span>;
+    }
+
+    // Handle Equipment Description/Make with better styling
+    if (key === 'Equipment Description/Make') {
+        return <span className="font-medium text-gray-800" title={text}>{text}</span>;
+    }
+
+    // Handle Make with better styling
+    if (key === 'Make') {
+        return <span className="text-blue-600 font-medium">{text}</span>;
+    }
+
+    // Handle Year of Manufacture
+    if (key === 'Year of Manufacture') {
+        return <span className="text-gray-700">{text}</span>;
+    }
+
+    // Handle Site Location
+    if (key === 'Site Location') {
+        return <span className="text-green-700 font-medium">{text}</span>;
+    }
+
+    // Handle Registration Number
+    if (key === 'Registration Number') {
+        return <span className="text-purple-700 font-mono text-sm">{text}</span>;
+    }
+
+    // Handle Remarks
+    if (key === 'Remarks') {
+        return <span className="text-gray-600 italic" title={text}>{text}</span>;
+    }
     
-    return <span title={String(value)}>{value}</span>;
+    // Default case
+    return <span title={String(value)} className="text-gray-700">{value}</span>;
 }
 
 
@@ -51,9 +76,9 @@ export const EquipmentTable: React.FC<EquipmentTableProps> = ({ data, isLoading,
 
   return (
     <div className="custom-scrollbar overflow-auto max-h-[65vh]">
-      <table className="min-w-[1200px] w-full table-fixed text-sm">
+      <table className="min-w-[1400px] w-full table-fixed text-sm">
         <colgroup>
-          <col className="w-12" />
+          <col className="w-16" />
           {TABLE_HEADERS.map(h => <col key={h.key} className={h.className} />)}
           <col className="w-[140px]" />
         </colgroup>
@@ -108,7 +133,7 @@ export const EquipmentTable: React.FC<EquipmentTableProps> = ({ data, isLoading,
                   />
                 </td>
                 {TABLE_HEADERS.map(header => (
-                  <td key={header.key} className="px-3 py-2.5 border-r border-slate-100 align-top whitespace-nowrap overflow-hidden text-ellipsis group-hover:border-blue-100">
+                  <td key={header.key} className="px-3 py-2.5 border-r border-slate-100 align-top break-words group-hover:border-blue-100">
                       {renderCell(item, header.key)}
                   </td>
                 ))}

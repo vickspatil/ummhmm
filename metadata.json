@@ -1,0 +1,5 @@
+{
+  "name": "Equipment Management Dashboard",
+  "description": "A modern, interactive dashboard to manage and track equipment inventory across various sites and categories. Features include real-time search, add, edit, and delete functionality, all powered by a sleek, responsive interface.",
+  "requestFramePermissions": []
+}
